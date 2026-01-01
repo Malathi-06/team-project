@@ -1,9 +1,15 @@
-const express = require("express");
+const express = require('express');
 const router = express.Router();
+const {
+    registerUser,
+    loginUser,
+    getMe,
+    updateUserProfile,
+} = require('../controllers/userController');
+const { protect } = require('../middleware/authMiddleware');
 
-// Placeholder routes - to be implemented
-router.get("/", (req, res) => {
-    res.json({ message: "Get all users" });
-});
+router.post('/', registerUser);
+router.post('/login', loginUser);
+router.route('/profile').get(protect, getMe).put(protect, updateUserProfile);
 
 module.exports = router;

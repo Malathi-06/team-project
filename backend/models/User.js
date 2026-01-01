@@ -1,5 +1,4 @@
 const mongoose = require("mongoose");
-// You'll need to install bcryptjs: npm install bcryptjs
 const bcrypt = require("bcryptjs");
 
 const userSchema = new mongoose.Schema(
