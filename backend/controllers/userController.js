@@ -41,7 +41,8 @@ const registerUser = async (req, res, next) => {
         _id: user._id,
         name: user.name,
         email: user.email,
-        isAdmin: user.isAdmin,
+        role: user.role,
+        isAdmin: user.role === "admin",
         token: generateToken(user._id),
       });
     } else {
@@ -68,7 +69,8 @@ const loginUser = async (req, res, next) => {
         _id: user._id,
         name: user.name,
         email: user.email,
-        isAdmin: user.isAdmin,
+        role: user.role,
+        isAdmin: user.role === "admin",
         token: generateToken(user._id),
       });
     } else {
@@ -96,7 +98,8 @@ const getMe = async (req, res, next) => {
       _id: user._id,
       name: user.name,
       email: user.email,
-      isAdmin: user.isAdmin,
+      role: user.role,
+      isAdmin: user.role === "admin",
     });
   } catch (error) {
     next(error);
@@ -124,7 +127,8 @@ const updateUserProfile = async (req, res, next) => {
         _id: updatedUser._id,
         name: updatedUser.name,
         email: updatedUser.email,
-        isAdmin: updatedUser.isAdmin,
+        role: updatedUser.role,
+        isAdmin: updatedUser.role === "admin",
         token: generateToken(updatedUser._id),
       });
     } else {
@@ -136,9 +140,46 @@ const updateUserProfile = async (req, res, next) => {
   }
 };
 
+// @desc    Get all users
+// @route   GET /api/users
+// @access  Private/Admin
+const getUsers = async (req, res, next) => {
+  try {
+    const users = await User.find({});
+    res.json(users);
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Delete user
+// @route   DELETE /api/users/:id
+// @access  Private/Admin
+const deleteUser = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.params.id);
+
+    if (user) {
+      if (user.role === 'admin') {
+        res.status(400);
+        throw new Error('Cannot delete admin user');
+      }
+      await User.deleteOne({ _id: user._id });
+      res.json({ message: 'User removed' });
+    } else {
+      res.status(404);
+      throw new Error('User not found');
+    }
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   registerUser,
   loginUser,
   getMe,
   updateUserProfile,
+  getUsers,
+  deleteUser,
 };

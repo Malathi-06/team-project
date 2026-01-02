@@ -1,12 +1,17 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import { useCart } from '../context/CartContext';
 
 const Navbar = () => {
+    const { user, logout } = useAuth();
+    const { cartItems } = useCart();
     const navigate = useNavigate();
-    const user = JSON.parse(localStorage.getItem('user'));
+
+    const cartCount = cartItems.reduce((acc, item) => acc + item.qty, 0);
 
     const handleLogout = () => {
-        localStorage.removeItem('user');
+        logout();
         navigate('/login');
     };
 
@@ -16,6 +21,11 @@ const Navbar = () => {
                 <Link to="/" style={styles.logo}>ShopMERN</Link>
                 <ul style={styles.links}>
                     <li><Link to="/" style={styles.link}>Home</Link></li>
+                    <li>
+                        <Link to="/cart" style={styles.cartLink}>
+                            🛒 <span style={styles.cartBadge}>{cartCount}</span>
+                        </Link>
+                    </li>
                     {!user ? (
                         <>
                             <li><Link to="/login" style={styles.link}>Login</Link></li>
@@ -23,7 +33,14 @@ const Navbar = () => {
                         </>
                     ) : (
                         <>
-                            <li style={styles.user}>Hi, {user.name}</li>
+                            {user.role === 'admin' && (
+                                <>
+                                    <li><Link to="/admin/dashboard" style={styles.link}>Dashboard</Link></li>
+                                    <li><Link to="/add-product" style={styles.link}>Add Product</Link></li>
+                                </>
+                            )}
+                            <li><Link to="/my-orders" style={styles.link}>My Orders</Link></li>
+                            <li><Link to="/profile" style={styles.link}>{user.name}</Link></li>
                             <li><button onClick={handleLogout} style={styles.logoutBtn}>Logout</button></li>
                         </>
                     )}
@@ -64,7 +81,27 @@ const styles = {
     },
     link: {
         fontWeight: '500',
-        color: 'var(--text-main)',
+    },
+    cartLink: {
+        textDecoration: 'none',
+        fontSize: '1.2rem',
+        position: 'relative',
+        display: 'flex',
+        alignItems: 'center'
+    },
+    cartBadge: {
+        position: 'absolute',
+        top: '-8px',
+        right: '-10px',
+        backgroundColor: '#ef4444',
+        color: 'white',
+        fontSize: '0.7rem',
+        fontWeight: '700',
+        padding: '2px 5px',
+        borderRadius: '10px',
+        minWidth: '15px',
+        textAlign: 'center',
+        boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
     },
     registerBtn: {
         backgroundColor: 'var(--primary)',

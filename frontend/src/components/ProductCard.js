@@ -1,14 +1,50 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import productService from '../services/productService';
 
-const ProductCard = ({ product }) => {
+const ProductCard = ({ product, onRefresh }) => {
+    const { user } = useAuth();
+    const navigate = useNavigate();
+
+    const handleDelete = async () => {
+        if (window.confirm(`Are you sure you want to delete "${product.name}"?`)) {
+            try {
+                await productService.deleteProduct(product._id);
+                if (onRefresh) onRefresh();
+            } catch (err) {
+                alert(err.response?.data?.message || 'Failed to delete product');
+            }
+        }
+    };
+
     return (
-        <div style={styles.card}>
+        <div style={styles.card} className="product-card">
+            {user && user.role === 'admin' && (
+                <div style={styles.adminBadge}>
+                    <button
+                        onClick={() => navigate(`/edit-product/${product._id}`)}
+                        style={styles.iconBtn}
+                        className="btn-hover"
+                        title="Edit Product"
+                    >
+                        ✎
+                    </button>
+                    <button
+                        onClick={handleDelete}
+                        style={{ ...styles.iconBtn, color: '#ef4444' }}
+                        className="btn-hover"
+                        title="Delete Product"
+                    >
+                        🗑
+                    </button>
+                </div>
+            )}
             <div style={styles.imageContainer}>
                 <img
-                    src={product.images && product.images.length > 0 ? product.images[0] : 'https://via.placeholder.com/300'}
+                    src={product.image || (product.images && product.images[0]) || 'https://via.placeholder.com/300'}
                     alt={product.name}
                     style={styles.image}
+                    className="card-image"
                 />
             </div>
             <div style={styles.content}>
@@ -19,7 +55,7 @@ const ProductCard = ({ product }) => {
                 </p>
                 <div style={styles.footer}>
                     <span style={styles.price}>${product.price}</span>
-                    <button style={styles.button}>Add to Cart</button>
+                    <button className="btn-primary btn-hover" style={styles.button}>Add to Cart</button>
                 </div>
             </div>
         </div>
@@ -38,6 +74,28 @@ const styles = {
         height: '100%',
         position: 'relative',
         border: '1px solid var(--border-light)'
+    },
+    adminBadge: {
+        position: 'absolute',
+        top: '10px',
+        right: '10px',
+        display: 'flex',
+        gap: '0.5rem',
+        zIndex: 10
+    },
+    iconBtn: {
+        backgroundColor: 'rgba(255, 255, 255, 0.9)',
+        border: 'none',
+        width: '32px',
+        height: '32px',
+        borderRadius: '50%',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        cursor: 'pointer',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+        fontSize: '1rem',
+        transition: 'background 0.2s'
     },
     imageContainer: {
         height: '200px',
@@ -88,19 +146,26 @@ const styles = {
         marginTop: 'auto'
     },
     price: {
-        fontSize: '1.5rem',
+        fontSize: '1.4rem',
         fontWeight: '800',
-        color: 'var(--text-main)'
+        color: 'var(--primary)'
     },
     button: {
         backgroundColor: 'var(--primary)',
         color: 'white',
         border: 'none',
-        padding: '0.5rem 1rem',
-        borderRadius: '8px',
+        padding: '0.6rem 1.2rem',
+        borderRadius: '10px',
         fontWeight: '600',
         cursor: 'pointer',
-        fontSize: '0.875rem'
+        fontSize: '0.85rem',
+        transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+        boxShadow: '0 4px 12px rgba(37, 99, 235, 0.15)'
+    },
+    actionBtnHover: {
+        backgroundColor: 'var(--primary-dark)',
+        transform: 'translateY(-2px)',
+        boxShadow: '0 6px 15px rgba(37, 99, 235, 0.25)'
     }
 };
 

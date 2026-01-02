@@ -8,6 +8,7 @@ const { errorHandler, notFound } = require("./middleware/errorMiddleware");
 const productRoutes = require("./routes/productRoutes");
 const categoryRoutes = require("./routes/categoryRoutes");
 const userRoutes = require("./routes/userRoutes");
+const orderRoutes = require("./routes/orderRoutes");
 
 // Load environment variables
 dotenv.config();
@@ -39,6 +40,7 @@ app.get("/", (req, res) => {
 app.use("/api/products", productRoutes);
 app.use("/api/categories", categoryRoutes);
 app.use("/api/users", userRoutes);
+app.use("/api/orders", orderRoutes);
 
 // Error handling middleware (must be last)
 app.use(notFound);

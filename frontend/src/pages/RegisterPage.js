@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import API from '../services/api';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 const RegisterPage = () => {
     const [name, setName] = useState('');
@@ -8,7 +8,11 @@ const RegisterPage = () => {
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
+    const { register } = useAuth();
     const navigate = useNavigate();
+    const location = useLocation();
+
+    const redirect = new URLSearchParams(location.search).get('redirect') || '/';
 
     const handleRegister = async (e) => {
         e.preventDefault();
@@ -16,9 +20,8 @@ const RegisterPage = () => {
         setError('');
 
         try {
-            const { data } = await API.post('/users', { name, email, password });
-            localStorage.setItem('user', JSON.stringify(data));
-            navigate('/');
+            await register({ name, email, password });
+            navigate(redirect);
         } catch (err) {
             setError(err.response?.data?.message || 'Registration failed. Please try again.');
         } finally {
@@ -80,7 +83,7 @@ const RegisterPage = () => {
                 </form>
 
                 <div style={{ textAlign: 'center', marginTop: '1.5rem', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
-                    Already have an account? <Link to="/login" style={{ color: 'var(--primary)', fontWeight: '600' }}>Login</Link>
+                    Already have an account? <Link to={redirect !== '/' ? `/login?redirect=${redirect}` : '/login'} style={{ color: 'var(--primary)', fontWeight: '600' }}>Login</Link>
                 </div>
             </div>
         </div>

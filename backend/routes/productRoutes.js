@@ -11,7 +11,7 @@ const { protect, admin } = require("../middleware/authMiddleware");
 
 // @route   GET /api/products
 // @route   POST /api/products
-router.route("/").get(getProducts).post(protect, createProduct);
+router.route("/").get(getProducts).post(protect, admin, createProduct);
 
 // @route   GET /api/products/:id
 // @route   PUT /api/products/:id

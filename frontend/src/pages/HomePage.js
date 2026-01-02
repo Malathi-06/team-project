@@ -1,25 +1,46 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import productService from '../services/productService';
+import categoryService from '../services/categoryService';
 import ProductCard from '../components/ProductCard';
+import { useAuth } from '../context/AuthContext';
 
 const HomePage = () => {
     const [products, setProducts] = useState([]);
+    const [categories, setCategories] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [search, setSearch] = useState('');
+    const [category, setCategory] = useState('');
+    const { user } = useAuth();
+    const navigate = useNavigate();
+
+    const fetchProducts = async () => {
+        try {
+            const data = await productService.getProducts({ search, category });
+            setProducts(data.products || []);
+            setLoading(false);
+        } catch (err) {
+            setError(err.message);
+            setLoading(false);
+        }
+    };
+
+    const fetchCategories = async () => {
+        try {
+            const data = await categoryService.getCategories();
+            setCategories(data);
+        } catch (err) {
+            console.error('Failed to fetch categories');
+        }
+    };
 
     useEffect(() => {
-        const fetchProducts = async () => {
-            try {
-                const data = await productService.getProducts();
-                setProducts(data.products || []);
-                setLoading(false);
-            } catch (err) {
-                setError(err.message);
-                setLoading(false);
-            }
-        };
-
         fetchProducts();
+    }, [search, category]);
+
+    useEffect(() => {
+        fetchCategories();
     }, []);
 
     if (loading) return (
@@ -50,14 +71,57 @@ const HomePage = () => {
                 </div>
             </section>
 
-            {/* Product Grid */}
-            <div className="container" style={{ paddingBottom: '4rem' }}>
-                <h2 style={styles.sectionTitle}>Featured Products</h2>
-                <div className="product-grid">
-                    {products.map((product) => (
-                        <ProductCard key={product._id} product={product} />
-                    ))}
+            {/* Filter Bar */}
+            <div className="container" style={styles.filterBar}>
+                <div style={styles.searchBox}>
+                    <input
+                        type="text"
+                        placeholder="Search products..."
+                        style={styles.filterInput}
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                    />
                 </div>
+                <div style={styles.categoryBox}>
+                    <select
+                        style={styles.filterInput}
+                        value={category}
+                        onChange={(e) => setCategory(e.target.value)}
+                    >
+                        <option value="">All Categories</option>
+                        {categories.map(cat => (
+                            <option key={cat._id} value={cat._id}>{cat.name}</option>
+                        ))}
+                    </select>
+                </div>
+            </div>
+
+            {/* Product Grid Area */}
+            <div className="container" style={{ paddingBottom: '4rem' }}>
+                <div style={styles.gridHeader}>
+                    <h2 style={styles.sectionTitle}>Featured Products</h2>
+                    {user && user.role === 'admin' && (
+                        <button
+                            className="btn btn-primary"
+                            style={styles.addProductBtn}
+                            onClick={() => navigate('/add-product')}
+                        >
+                            + Add Product
+                        </button>
+                    )}
+                </div>
+
+                {products.length === 0 ? (
+                    <div style={{ textAlign: 'center', padding: '4rem', color: 'var(--text-muted)' }}>
+                        No products found matching your criteria.
+                    </div>
+                ) : (
+                    <div className="product-grid">
+                        {products.map((product) => (
+                            <ProductCard key={product._id} product={product} onRefresh={fetchProducts} />
+                        ))}
+                    </div>
+                )}
             </div>
         </>
     );
@@ -105,8 +169,42 @@ const styles = {
     sectionTitle: {
         fontSize: '2rem',
         fontWeight: '700',
-        marginBottom: '1rem',
+        marginBottom: '0',
         color: 'var(--text-main)'
+    },
+    filterBar: {
+        display: 'flex',
+        gap: '1rem',
+        marginBottom: '2rem',
+        marginTop: '-1.5rem',
+        position: 'relative',
+        zIndex: 5
+    },
+    filterInput: {
+        padding: '0.75rem 1.25rem',
+        borderRadius: '12px',
+        border: '1px solid var(--border-light)',
+        fontSize: '0.9rem',
+        width: '100%',
+        backgroundColor: 'white',
+        boxShadow: 'var(--shadow-sm)'
+    },
+    searchBox: {
+        flex: 2
+    },
+    categoryBox: {
+        flex: 1
+    },
+    gridHeader: {
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: '2rem'
+    },
+    addProductBtn: {
+        width: 'auto',
+        padding: '0.75rem 1.5rem',
+        boxShadow: 'var(--shadow-md)'
     }
 };
 

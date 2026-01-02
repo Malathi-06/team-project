@@ -9,18 +9,39 @@ const getProducts = async (params) => {
 // Get product by ID
 const getProductById = async (id) => {
     const response = await API.get(`/products/${id}`);
-    return response.data;
+    const product = response.data;
+
+    // Normalize image for frontend forms
+    if (product && product.images && product.images.length > 0) {
+        product.image = product.images[0];
+    }
+
+    return product;
 };
 
 // Create product
 const createProduct = async (productData) => {
-    const response = await API.post('/products', productData);
+    // If frontend sends 'image' but backend expects 'images' array
+    const data = { ...productData };
+    if (data.image && !data.images) {
+        data.images = [data.image];
+        delete data.image;
+    }
+
+    const response = await API.post('/products', data);
     return response.data;
 };
 
 // Update product
 const updateProduct = async (id, productData) => {
-    const response = await API.put(`/products/${id}`, productData);
+    // If frontend sends 'image' but backend expects 'images' array
+    const data = { ...productData };
+    if (data.image && !data.images) {
+        data.images = [data.image];
+        delete data.image;
+    }
+
+    const response = await API.put(`/products/${id}`, data);
     return response.data;
 };
 

@@ -22,10 +22,11 @@ const userSchema = new mongoose.Schema(
             minlength: 6,
             select: false, // Don't return password by default
         },
-        isAdmin: {
-            type: Boolean,
+        role: {
+            type: String,
             required: true,
-            default: false,
+            enum: ["user", "admin", "moderator"],
+            default: "user",
         },
     },
     {

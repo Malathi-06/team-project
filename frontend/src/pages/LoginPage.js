@@ -1,13 +1,17 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import API from '../services/api';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 const LoginPage = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
+    const { login } = useAuth();
     const navigate = useNavigate();
+    const location = useLocation();
+
+    const redirect = new URLSearchParams(location.search).get('redirect') || '/';
 
     const handleLogin = async (e) => {
         e.preventDefault();
@@ -15,9 +19,8 @@ const LoginPage = () => {
         setError('');
 
         try {
-            const { data } = await API.post('/users/login', { email, password });
-            localStorage.setItem('user', JSON.stringify(data));
-            navigate('/');
+            await login({ email, password });
+            navigate(redirect);
         } catch (err) {
             setError(err.response?.data?.message || 'Login failed. Please check your credentials.');
         } finally {
@@ -67,7 +70,7 @@ const LoginPage = () => {
                 </form>
 
                 <div style={{ textAlign: 'center', marginTop: '1.5rem', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
-                    Don't have an account? <Link to="/register" style={{ color: 'var(--primary)', fontWeight: '600' }}>Register</Link>
+                    Don't have an account? <Link to={redirect !== '/' ? `/register?redirect=${redirect}` : '/register'} style={{ color: 'var(--primary)', fontWeight: '600' }}>Register</Link>
                 </div>
             </div>
         </div>
