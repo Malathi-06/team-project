@@ -1,0 +1,14 @@
+{
+    "name": "advanced-ecommerce-catalog",
+    "version": "1.0.0",
+    "description": "MERN Stack E-commerce Catalog",
+    "scripts": {
+        "install-all": "npm install && cd client && npm install && cd ../server && npm install",
+        "dev": "concurrently \"npm run start:server\" \"npm run start:client\"",
+        "start:server": "cd server && npm run dev",
+        "start:client": "cd client && npm run dev"
+    },
+    "devDependencies": {
+        "concurrently": "^8.2.2"
+    }
+}
